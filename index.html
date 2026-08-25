@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Northstar Market</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+		:root { --ink:#17211b; --muted:#68746c; --cream:#f6f4ed; --paper:#fffefa; --line:#dfe4da; --green:#1e5136; --lime:#c9e86a; --coral:#e97a58; }
+		* { box-sizing:border-box; }
+		body { margin:0; color:var(--ink); background:var(--cream); font-family:'DM Sans',sans-serif; }
+		.shell { max-width:1280px; margin:auto; padding:0 32px 72px; }
+		header { display:flex; justify-content:space-between; align-items:center; padding:26px 0; border-bottom:1px solid var(--line); }
+		.brand { display:flex; align-items:center; gap:10px; font:700 20px 'Space Grotesk',sans-serif; letter-spacing:-.5px; }
+		.brand-mark { width:30px; height:30px; display:grid; place-items:center; border-radius:8px; background:var(--coral); color:#fff; transform:rotate(-8deg); }
+		.brand-mark::after { content:'✦'; transform:rotate(8deg); }
+		.header-note,.hero-copy,.count { color:var(--muted); font-size:13px; }
+		.hero { display:grid; grid-template-columns:1.35fr .65fr; gap:40px; align-items:end; padding:74px 0 48px; }
+		h1 { max-width:760px; margin:0; font:600 clamp(45px,7vw,84px)/.94 'Space Grotesk',sans-serif; letter-spacing:-4px; }
+		h1 em { color:var(--green); font-style:normal; }
+		.hero-copy { max-width:310px; margin:0 0 5px; line-height:1.6; }
+		.toolbar { display:flex; gap:12px; flex-wrap:wrap; padding:18px 0 30px; border-top:1px solid var(--line); }
+		.search-wrap { flex:1 1 260px; position:relative; }
+		.search-wrap span { position:absolute; top:10px; left:16px; color:var(--muted); font-size:20px; }
+		input,select { height:44px; border:1px solid var(--line); border-radius:6px; background:var(--paper); color:var(--ink); font:inherit; outline:none; }
+		input { width:100%; padding:0 16px 0 42px; } select { padding:0 36px 0 14px; cursor:pointer; }
+		input:focus,select:focus { border-color:var(--green); box-shadow:0 0 0 3px #1e513620; }
+		.count { align-self:center; margin-left:auto; }
+		.grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:22px; }
+		.card { min-width:0; overflow:hidden; border:1px solid var(--line); border-radius:8px; background:var(--paper); animation:rise .45s both; transition:transform .2s,box-shadow .2s; }
+		.card:hover { transform:translateY(-5px); box-shadow:0 13px 25px #314b3215; }
+		.visual { position:relative; display:grid; height:244px; padding:28px; place-items:center; background:#eef2e8; }
+		.visual img { width:72%; height:83%; object-fit:contain; mix-blend-mode:multiply; }
+		.category { position:absolute; top:13px; left:13px; padding:5px 8px; border-radius:4px; background:var(--lime); color:#26321d; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; }
+		.details { padding:17px 18px 19px; } .details h2 { min-height:44px; margin:0 0 12px; font:600 16px/1.35 'Space Grotesk',sans-serif; }
+		.meta { display:flex; justify-content:space-between; align-items:center; padding-top:13px; border-top:1px solid var(--line); }
+		.price { font:700 19px 'Space Grotesk',sans-serif; } .rating { color:var(--coral); font-size:12px; } .rating span { margin-left:4px; color:var(--muted); }
+		.state { grid-column:1/-1; display:grid; min-height:230px; place-items:center; color:var(--muted); } .error { color:#a64831; text-align:center; }
+		@keyframes rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+		@media (max-width:950px) { .grid { grid-template-columns:repeat(3,1fr); } }
+		@media (max-width:680px) { .shell { padding:0 18px 44px; } .header-note { display:none; } .hero { grid-template-columns:1fr; gap:24px; padding:48px 0 36px; } h1 { letter-spacing:-2px; } .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .visual { height:180px; padding:18px; } .details { padding:13px; } .details h2 { min-height:57px; font-size:14px; } .price { font-size:16px; } .count { width:100%; margin-left:0; } }
+		@media (max-width:390px) { .grid { grid-template-columns:1fr; } .visual { height:230px; } }
+	</style>
+</head>
+<body>
+	<main class="shell">
+		<header><div class="brand"><span class="brand-mark"></span> NORTHSTAR</div><div class="header-note">A considered collection of everyday finds</div></header>
+		<section class="hero"><h1>Things worth<br><em>bringing home.</em></h1><p class="hero-copy">Browse a small, bright corner of the internet. Good objects, clear prices, no fuss.</p></section>
+		<section class="toolbar" aria-label="Product controls">
+			<div class="search-wrap"><span>⌕</span><input id="search" type="search" placeholder="Search the collection..." aria-label="Search products"></div>
+			<select id="category" aria-label="Filter by category"><option value="all">All categories</option></select>
+			<select id="sort" aria-label="Sort products"><option value="featured">Sort: Featured</option><option value="low">Price: Low to high</option><option value="high">Price: High to low</option><option value="rating">Top rated</option></select>
+			<div class="count" id="count">Loading collection...</div>
+		</section>
+		<section class="grid" id="products" aria-live="polite"><div class="state">Loading the collection...</div></section>
+	</main>
+	<script>
+		const productsElement = document.querySelector('#products');
+		const searchElement = document.querySelector('#search');
+		const categoryElement = document.querySelector('#category');
+		const sortElement = document.querySelector('#sort');
+		const countElement = document.querySelector('#count');
+		let products = [];
+		const titleCase = value => value.replace(/\b\w/g, character => character.toUpperCase());
+		const formatCategory = value => value === "men's clothing" || value === "women's clothing" ? value.replace(' clothing', '') : value;
+		function render() {
+			const query = searchElement.value.toLowerCase().trim();
+			const category = categoryElement.value;
+			const filtered = products.filter(product => (category === 'all' || product.category === category) && product.title.toLowerCase().includes(query));
+			const sorted = [...filtered];
+			if (sortElement.value === 'low') sorted.sort((a,b) => a.price - b.price);
+			if (sortElement.value === 'high') sorted.sort((a,b) => b.price - a.price);
+			if (sortElement.value === 'rating') sorted.sort((a,b) => b.rating.rate - a.rating.rate);
+			countElement.textContent = `${sorted.length} ${sorted.length === 1 ? 'item' : 'items'}`;
+			productsElement.innerHTML = sorted.length ? sorted.map((product,index) => `<article class="card" style="animation-delay:${Math.min(index * 35,280)}ms"><div class="visual"><span class="category">${formatCategory(product.category)}</span><img src="${product.image}" alt="${product.title}" loading="lazy"></div><div class="details"><h2>${product.title}</h2><div class="meta"><strong class="price">$${product.price.toFixed(2)}</strong><div class="rating">★ ${product.rating.rate.toFixed(1)}<span>(${product.rating.count})</span></div></div></div></article>`).join('') : '<div class="state">No products match your search.</div>';
+		}
+		async function loadProducts() {
+			try {
+				const response = await fetch('https://fakestoreapi.com/products');
+				if (!response.ok) throw new Error('Request failed');
+				products = await response.json();
+				[...new Set(products.map(product => product.category))].sort().forEach(category => categoryElement.add(new Option(titleCase(formatCategory(category)), category)));
+				render();
+			} catch (error) {
+				countElement.textContent = 'Unavailable';
+				productsElement.innerHTML = '<div class="state error">The collection could not load. Check your connection and refresh to try again.</div>';
+			}
+		}
+		searchElement.addEventListener('input', render); categoryElement.addEventListener('change', render); sortElement.addEventListener('change', render); loadProducts();
+	</script>
+</body>
+</html>
